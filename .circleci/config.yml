@@ -31,6 +31,13 @@ jobs:
           name: Run tests
           command: npm test -- --ci --runInBand
 
+      - store_test_results:
+          path: test-results
+
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
 workflows:
   build_and_test:
     jobs:
