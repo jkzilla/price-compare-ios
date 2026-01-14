@@ -17,6 +17,84 @@ const RAPIDAPI_PATH = '/search';
 const RAPIDAPI_HOST = 'example-rapidapi-endpoint.com';
 const RAPIDAPI_KEY = 'YOUR_RAPIDAPI_KEY_HERE';
 
+// Temporary flag: when true, the app will use local mock data instead of calling RapidAPI.
+const USE_MOCK_DATA = true;
+
+const MOCK_JSON = {
+  results: [
+    {
+      id: 'milk-1',
+      name: 'Whole Milk 1 Gallon',
+      store: 'Store A',
+      upc: '111111111111',
+      current_price: 3.49,
+    },
+    {
+      id: 'eggs-1',
+      name: 'Large Eggs, Dozen',
+      store: 'Store B',
+      upc: '222222222222',
+      current_price: 2.59,
+    },
+    {
+      id: 'bread-1',
+      name: 'White Sandwich Bread, 20oz',
+      store: 'Store C',
+      upc: '333333333333',
+      current_price: 1.99,
+    },
+    {
+      id: 'rice-1',
+      name: 'Long Grain Rice, 2 lb',
+      store: 'Store A',
+      upc: '444444444444',
+      current_price: 2.79,
+    },
+    {
+      id: 'apples-1',
+      name: 'Gala Apples, 3 lb Bag',
+      store: 'Store D',
+      upc: '555555555555',
+      current_price: 4.49,
+    },
+    {
+      id: 'bananas-1',
+      name: 'Bananas, 1 lb',
+      store: 'Store B',
+      upc: '666666666666',
+      current_price: 0.69,
+    },
+    {
+      id: 'chicken-1',
+      name: 'Boneless Skinless Chicken Breast, 1 lb',
+      store: 'Store C',
+      upc: '777777777777',
+      current_price: 5.99,
+    },
+    {
+      id: 'beef-1',
+      name: 'Ground Beef 80/20, 1 lb',
+      store: 'Store A',
+      upc: '888888888888',
+      current_price: 4.89,
+    },
+    {
+      id: 'cheese-1',
+      name: 'Cheddar Cheese Block, 8 oz',
+      store: 'Store D',
+      upc: '999999999999',
+      current_price: 3.29,
+    },
+    {
+      id: 'broccoli-1',
+      name: 'Fresh Broccoli Crown, 1 lb',
+      store: 'Store B',
+      upc: '101010101010',
+      current_price: 1.79,
+    },
+  ],
+};
+
 const PRODUCT_SUGGESTIONS = [
   'Whole milk 1 gallon',
   'Large eggs, dozen',
@@ -51,21 +129,27 @@ export default function App() {
     setError('');
 
     try {
-      const url = `${RAPIDAPI_BASE_URL}${RAPIDAPI_PATH}?q=${encodeURIComponent(trimmed)}`;
+      const json = USE_MOCK_DATA
+        ? MOCK_JSON
+        : await (async () => {
+            const url = `${RAPIDAPI_BASE_URL}${RAPIDAPI_PATH}?q=${encodeURIComponent(
+              trimmed,
+            )}`;
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': RAPIDAPI_KEY,
-          'X-RapidAPI-Host': RAPIDAPI_HOST,
-        },
-      });
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'X-RapidAPI-Key': RAPIDAPI_KEY,
+                'X-RapidAPI-Host': RAPIDAPI_HOST,
+              },
+            });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
 
-      const json = await response.json();
+            return response.json();
+          })();
 
       const offers = extractOffers(json);
       const mapped = mapOffersToViewModel(offers);
@@ -222,26 +306,28 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    // Dark gradient-like backdrop for glass elements to sit on
     backgroundColor: '#020617',
   },
   container: {
     flex: 1,
-    backgroundColor: '#020617',
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: 'rgba(2, 6, 23, 0.96)',
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   header: {
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   emoji: {
-    fontSize: 40,
-    marginBottom: 4,
+    fontSize: 42,
+    marginBottom: 6,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#e5e7eb',
+    fontSize: 26,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    color: '#f9fafb',
   },
   subtitle: {
     marginTop: 4,
@@ -251,12 +337,12 @@ const styles = StyleSheet.create({
   searchRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 8,
-    marginBottom: 12,
+    gap: 10,
+    marginBottom: 16,
   },
   searchButtonsColumn: {
     justifyContent: 'flex-end',
-    gap: 6,
+    gap: 8,
   },
   inputContainer: {
     flex: 1,
@@ -264,56 +350,67 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     color: '#9ca3af',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   input: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    backgroundColor: '#020617',
+    borderColor: 'rgba(148, 163, 184, 0.25)',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
     color: '#e5e7eb',
-    fontSize: 14,
+    fontSize: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   button: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#4f46e5',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(79, 70, 229, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: '#e5e7eb',
-    fontWeight: '600',
+    color: '#f9fafb',
+    fontWeight: '700',
+    fontSize: 14,
   },
   secondaryButton: {
-    marginTop: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    marginTop: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#4b5563',
-    backgroundColor: '#020617',
+    borderColor: 'rgba(148, 163, 184, 0.28)',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#9ca3af',
+    color: '#e5e7eb',
     fontSize: 12,
     fontWeight: '500',
   },
   errorBox: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#f97373',
     backgroundColor: '#7f1d1d',
-    padding: 10,
-    marginBottom: 8,
+    padding: 12,
+    marginBottom: 10,
   },
   errorText: {
     color: '#fee2e2',
@@ -323,7 +420,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   loadingText: {
     color: '#d1d5db',
@@ -332,60 +429,75 @@ const styles = StyleSheet.create({
   helperText: {
     color: '#9ca3af',
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 6,
   },
   suggestionsContainer: {
-    marginTop: 4,
-    borderRadius: 12,
+    marginTop: 6,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: '#111827',
     backgroundColor: '#020617',
-    maxHeight: 160,
+    maxHeight: 200,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
   },
   suggestionItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#111827',
+    borderBottomColor: 'rgba(15, 23, 42, 0.85)',
   },
   suggestionText: {
-    color: '#d1d5db',
+    color: '#e5e7eb',
     fontSize: 13,
   },
   resultsContainer: {
     flex: 1,
-    marginTop: 8,
+    marginTop: 14,
   },
   resultsTitle: {
     color: '#e5e7eb',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   listContent: {
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   card: {
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 10,
   },
   cardDefault: {
-    backgroundColor: '#020617',
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: 'rgba(148, 163, 184, 0.32)',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
   },
   cardHighlight: {
-    backgroundColor: '#022c22',
+    backgroundColor: 'rgba(6, 78, 59, 0.82)',
     borderWidth: 1,
-    borderColor: '#22c55e',
+    borderColor: 'rgba(34, 197, 94, 0.75)',
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10,
   },
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardRetailer: {
     color: '#e5e7eb',
@@ -403,7 +515,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   cardTitle: {
-    color: '#d1d5db',
+    color: '#e5e7eb',
     fontSize: 14,
     marginBottom: 4,
   },

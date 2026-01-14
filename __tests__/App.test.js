@@ -10,7 +10,7 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-cconst mockJson = {
+const mockJson = {
   results: [
     {
       id: 'milk-1',
@@ -85,13 +85,13 @@ cconst mockJson = {
   ],
 };
 
-test('submits a query and shows cheapest offer badge', async () => {
+test('marks the Store B bananas at $0.69 as the single cheapest offer', async () => {
   fetch.mockResolvedValueOnce({
     ok: true,
     json: async () => mockJson,
   });
 
-  const { getByText, getByPlaceholderText, queryByText } = render(<App />);
+  const { getByText, getByPlaceholderText, queryByText, getAllByText } = render(<App />);
 
   expect(getByText(/Price Compare/i)).toBeTruthy();
 
@@ -107,6 +107,12 @@ test('submits a query and shows cheapest offer badge', async () => {
     expect(queryByText(/Fetching offers/i)).toBeNull();
   });
 
+  // Explicitly assert that the bananas from Store B at $0.69 are shown
   expect(getByText('Store B')).toBeTruthy();
-  expect(getByText('Cheapest')).toBeTruthy();
+  expect(getByText('Bananas, 1 lb')).toBeTruthy();
+  expect(getByText('$0.69')).toBeTruthy();
+
+  // There should be exactly one "Cheapest" badge, attached to the lowest-priced offer
+  const cheapestBadges = getAllByText('Cheapest');
+  expect(cheapestBadges).toHaveLength(1);
 });

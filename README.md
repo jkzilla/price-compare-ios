@@ -220,7 +220,25 @@ Detox will:
 
 If everything is wired up, you should see the simulator pop up and tests pass or fail in the terminal.
 
-### 8.3 Where tests show up in CircleCI
+### 8.3 Mock data vs real RapidAPI
+
+Right now the app is wired to use **local mock data** instead of calling the real RapidAPI, so you can develop and demo without a real API key.
+
+In `App.js` there is a flag:
+
+```js
+const USE_MOCK_DATA = true;
+```
+
+When you’re ready to hit RapidAPI again, change it to:
+
+```js
+const USE_MOCK_DATA = false;
+```
+
+Or, for a more flexible setup, you can later wire this to an environment variable; the rest of the fetch logic is already in place.
+
+### 8.4 Where tests show up in CircleCI
 
 On the **main** branch, CircleCI runs two jobs:
 
