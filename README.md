@@ -49,26 +49,26 @@ You only need to do this **once per machine** (or when dependencies change).
 
 ---
 
-## 4. Putting in your RapidAPI key
+## 4. Putting in your RapidAPI key (without hard‑coding it)
 
-Right now, `App.js` has a **fake placeholder** for the API key so you don’t accidentally commit a real key:
+This app needs a **RapidAPI key** to talk to the real API, but the key itself should **not** live in the code or be committed to Git.
 
-```js
-const RAPIDAPI_KEY = 'YOUR_RAPIDAPI_KEY_HERE';
-```
+High‑level idea (no deep DevOps knowledge required):
 
-To make the app actually talk to the API:
+- You keep the key in a **secret place** (environment variables or your platform’s secret store).
+- The app reads it at runtime.
+- The key never appears in the repo.
 
-1. **Get a RapidAPI key** from <https://rapidapi.com/>.
-2. In `App.js`, change the line above to use your real key **locally only**, for example:
-   ```js
-   const RAPIDAPI_KEY = 'YOUR_REAL_KEY_HERE';
-   ```
-3. Make sure you **never commit** your real key to a public repo.
-   - For a quick local demo, editing `App.js` is fine.
-   - For something more serious, switch later to environment variables / secrets.
+Typical patterns (depending on where you run the app):
 
-You can also point `RAPIDAPI_BASE_URL`, `RAPIDAPI_PATH`, and `RAPIDAPI_HOST` at the real API endpoint you want to use.
+- **Local development:**
+  - Use a `.env` file and something like `expo-env`, `react-native-dotenv`, or your preferred env loader.
+  - Or set an environment variable in your shell before starting Expo.
+- **CI / real deployments:**
+  - Store the key in your CI / hosting provider’s **secrets** settings.
+  - Map that secret into an env var the app can read.
+
+You can also point `RAPIDAPI_BASE_URL`, `RAPIDAPI_PATH`, and `RAPIDAPI_HOST` at the real API endpoint you want to use, again via config / environment rather than hard‑coding sensitive values.
 
 ---
 
@@ -206,7 +206,7 @@ When you save a file, the app should automatically reload in your device/simulat
 ## 11. Short version (too long; didn’t read)
 
 - **Install stuff:** `npm install`
-- **Add API key:** update `RAPIDAPI_KEY` in `App.js`
+- **Wire up API key:** configure a RapidAPI key via environment variables / secrets (don’t hard‑code it)
 - **Run the app:** `npm start` and open it via Expo Go / simulator
 - **Run tests:** `npm test`
 
