@@ -17,18 +17,32 @@ const RAPIDAPI_PATH = '/search';
 const RAPIDAPI_HOST = 'example-rapidapi-endpoint.com';
 const RAPIDAPI_KEY = 'YOUR_RAPIDAPI_KEY_HERE';
 
+const PRODUCT_SUGGESTIONS = [
+  'Whole milk 1 gallon',
+  'Large eggs, dozen',
+  'White sandwich bread',
+  'Long grain rice 2 lb',
+  'Gala apples 3 lb bag',
+  'Bananas',
+  'Chicken breast',
+  'Ground beef 80/20',
+  'Cheddar cheese block',
+  'Fresh broccoli',
+];
+
 export default function App() {
   const [query, setQuery] = useState('eggs');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const sortedResults = useMemo(() => sortOffersByPrice(results), [results]);
 
   const cheapestId = sortedResults[0]?.id;
 
-  const handleSearch = async () => {
-    const trimmed = query.trim();
+  const handleSearch = async (overrideQuery) => {
+    const trimmed = (overrideQuery ?? query).trim();
     if (!trimmed) {
       return;
     }
@@ -57,6 +71,7 @@ export default function App() {
       const mapped = mapOffersToViewModel(offers);
 
       setResults(mapped);
+      setShowSuggestions(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
       setResults([]);
@@ -80,22 +95,66 @@ export default function App() {
             <Text style={styles.inputLabel}>Product or SKU</Text>
             <TextInput
               value={query}
-              onChangeText={setQuery}
+              onChangeText={(text) => {
+                setQuery(text);
+                setShowSuggestions(true);
+              }}
               placeholder="e.g. large eggs, UPC, SKU"
               placeholderTextColor="#9ca3af"
               autoCapitalize="none"
               style={styles.input}
               returnKeyType="search"
-              onSubmitEditing={handleSearch}
+              onSubmitEditing={() => handleSearch()}
+              onBlur={() => {
+                // small delay so taps on suggestions still register
+                setTimeout(() => setShowSuggestions(false), 150);
+              }}
+              onFocus={() => {
+                if (query.trim().length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
             />
+            {showSuggestions && (
+              <View style={styles.suggestionsContainer}>
+                {PRODUCT_SUGGESTIONS.filter((item) => {
+                  const trimmed = query.trim().toLowerCase();
+                  if (!trimmed) return true;
+                  return item.toLowerCase().includes(trimmed);
+                }).map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    style={styles.suggestionItem}
+                    onPress={() => {
+                      setQuery(item);
+                      handleSearch(item);
+                    }}
+                  >
+                    <Text style={styles.suggestionText}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSearch}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>{loading ? 'Searching…' : 'Compare'}</Text>
-          </TouchableOpacity>
+          <View style={styles.searchButtonsColumn}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={() => handleSearch()}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>{loading ? 'Searching…' : 'Compare'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryButton, loading && styles.buttonDisabled]}
+              onPress={() => {
+                setQuery('');
+                setShowSuggestions(true);
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.secondaryButtonText}>All products</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {error ? (
@@ -195,6 +254,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
+  searchButtonsColumn: {
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
   inputContainer: {
     flex: 1,
   },
@@ -228,6 +291,22 @@ const styles = StyleSheet.create({
     color: '#e5e7eb',
     fontWeight: '600',
   },
+  secondaryButton: {
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#4b5563',
+    backgroundColor: '#020617',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#9ca3af',
+    fontSize: 12,
+    fontWeight: '500',
+  },
   errorBox: {
     borderRadius: 12,
     borderWidth: 1,
@@ -254,6 +333,25 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     fontSize: 13,
     marginTop: 4,
+  },
+  suggestionsContainer: {
+    marginTop: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    backgroundColor: '#020617',
+    maxHeight: 160,
+    overflow: 'hidden',
+  },
+  suggestionItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#111827',
+  },
+  suggestionText: {
+    color: '#d1d5db',
+    fontSize: 13,
   },
   resultsContainer: {
     flex: 1,
