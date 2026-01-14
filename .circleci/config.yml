@@ -38,10 +38,51 @@ jobs:
           path: test-results
           destination: test-results
 
+  e2e-detox:
+    macos:
+      xcode: "15.0.0"
+    working_directory: ~/project
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    steps:
+      - checkout
+
+      - run:
+          name: Install Node dependencies
+          command: |
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
+      - run:
+          name: Install Detox iOS tooling (applesimutils)
+          command: |
+            brew tap wix/brew || true
+            brew install applesimutils || true
+
+      - run:
+          name: Run Detox e2e tests
+          command: npm run e2e
+
+      - store_test_results:
+          path: test-results/e2e
+
+      - store_artifacts:
+          path: test-results/e2e
+          destination: e2e-test-results
+
 workflows:
   build_and_test:
     jobs:
       - build-and-test:
+          filters:
+            branches:
+              only: main
+      - e2e-detox:
+          requires:
+            - build-and-test
           filters:
             branches:
               only: main

@@ -1,4 +1,4 @@
-# Price Compare (Like I’m Five Version)
+# Price Compare
 
 Imagine you have a bunch of stores and you want to know **who sells your eggs the cheapest**. This app helps you do that.
 
@@ -146,21 +146,91 @@ You only need to understand this if you want to change logic; to just **run** th
 
 ## 8. How to run tests
 
-This project uses **Jest** and **@testing-library/react-native**.
+This project has **two levels** of tests:
 
-To run the tests:
+- **Unit tests** (tiny pieces of code, checked in isolation).
+- **End-to-end (E2E) tests** with **Detox** (pretends to be a human tapping around the real app).
 
-```bash
-npm test
-```
+### 8.1 Unit tests (Jest)
+
+This uses **Jest** and **@testing-library/react-native**.
+
+- To run all unit tests:
+
+  ```bash
+  npm test
+  ```
+
+  or, if you prefer the more explicit name:
+
+  ```bash
+  npm run test:unit
+  ```
 
 Jest will:
 
 - Look at the `jest` config in `package.json`.
 - Use the React Native preset.
 - Apply extra testing-library matchers from `@testing-library/jest-native`.
+- Save machine-readable results under `test-results/jest` (used by CI).
 
 You should see which tests pass or fail in the terminal.
+
+### 8.2 End-to-end tests (Detox, iOS simulator)
+
+E2E tests are like a tiny robot that opens the app and checks that basic flows still work.
+
+Prerequisites (Mac only):
+
+- Xcode + iOS simulator installed.
+- You’ve generated native projects once via Expo:
+
+  ```bash
+  npx expo prebuild
+  ```
+
+- The iOS workspace / scheme names match what’s in `package.json` under the `detox` section. If they differ, update that config.
+
+Useful commands:
+
+- **Build the app for E2E (iOS debug simulator):**
+
+  ```bash
+  npm run e2e:build
+  ```
+
+- **Run the Detox E2E tests:**
+
+  ```bash
+  npm run e2e:test
+  ```
+
+- **Do both (build then test):**
+
+  ```bash
+  npm run e2e
+  ```
+
+Detox will:
+
+- Build an iOS simulator build of the app.
+- Launch a simulator (for example, an iPhone 15).
+- Run the tests in `e2e/*.e2e.js` using Jest.
+- Save machine-readable results under `test-results/e2e`.
+
+If everything is wired up, you should see the simulator pop up and tests pass or fail in the terminal.
+
+### 8.3 Where tests show up in CircleCI
+
+On the **main** branch, CircleCI runs two jobs:
+
+- A **unit test job** (`build-and-test`) that runs Jest and saves results from `test-results/jest`.
+- An **E2E job** (`e2e-detox`) on macOS that runs `npm run e2e` and saves results from `test-results/e2e`.
+
+In the CircleCI UI:
+
+- The **Tests** tab shows both unit and E2E test results.
+- The **Artifacts** tab lets you download the raw JUnit XML files if you’re curious.
 
 ---
 
@@ -208,6 +278,8 @@ When you save a file, the app should automatically reload in your device/simulat
 - **Install stuff:** `npm install`
 - **Wire up API key:** configure a RapidAPI key via environment variables / secrets (don’t hard‑code it)
 - **Run the app:** `npm start` and open it via Expo Go / simulator
-- **Run tests:** `npm test`
+- **Run unit tests:** `npm test` (or `npm run test:unit`)
+- **Run E2E tests (Mac + iOS simulator):** `npm run e2e`
+- **See tests in CI:** check the **Tests** and **Artifacts** tabs for the `build-and-test` and `e2e-detox` jobs on CircleCI
 
-That’s it. You now know enough to run and tinker with this app, even if you’re “five”. 🎉
+That’s it. You now know enough to run and tinker with this app. 🎉
